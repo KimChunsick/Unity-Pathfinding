@@ -20,6 +20,18 @@ public class Tile : MonoBehaviour {
     private Vector2 _index;
     public Vector2 index { set { _index = value; } get { return _index; } }
 
+    [SerializeField]
+    private float _weight;
+    public float weight { get { return _weight; } }
+
+    [SerializeField]
+    TextMesh _text;
+    public TextMesh text { get { return _text; } }
+
+    public int f { set; get; }
+    public int g { set; get; }
+    public int h { set; get; }
+
     private MeshRenderer _renderer = null;
 
     private void Awake()
