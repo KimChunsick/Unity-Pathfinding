@@ -17,20 +17,17 @@ public class Tile : MonoBehaviour {
     public TILE_TYPE type { set { _type = value; } get { return _type; } }
 
     [SerializeField]
-    private Vector2 _index;
-    public Vector2 index { set { _index = value; } get { return _index; } }
+    private Point _index;
+    public Point index { set { _index = value; } get { return _index; } }
 
     [SerializeField]
     private float _weight;
     public float weight { get { return _weight; } }
 
-    [SerializeField]
-    TextMesh _text;
-    public TextMesh text { get { return _text; } }
-
-    public int f { set; get; }
-    public int g { set; get; }
-    public int h { set; get; }
+    public float f { set; get; }
+    public float g { set; get; }
+    public float h { set; get; }
+    public Tile nextTile { set; get; }
 
     private MeshRenderer _renderer = null;
 
@@ -39,13 +36,8 @@ public class Tile : MonoBehaviour {
         _renderer = GetComponent<MeshRenderer>();
     }
 
-    public void AddedOpenList()
+    public void SetPathColor()
     {
-        _renderer.material = Resources.Load<Material>("Open");
-    }
-
-    public void AddedCloseList()
-    {
-        _renderer.material = Resources.Load<Material>("Close");
+        _renderer.material = Resources.Load<Material>("Path");
     }
 }

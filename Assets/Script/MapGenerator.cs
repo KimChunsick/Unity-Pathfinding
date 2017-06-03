@@ -18,7 +18,6 @@ public class MapGenerator : MonoBehaviour
     public int mapHeight { get { return _mapHeight; } }
 
     private Tile[,] _mapData;
-    private Vector2 _endPointIndex;
 
     private Tile _wall = null;
     private Tile _rand = null;
@@ -31,7 +30,7 @@ public class MapGenerator : MonoBehaviour
         _wall = Resources.Load<Tile>("Wall");
         _rand = Resources.Load<Tile>("Rand");
         _endPoint = Resources.Load<Tile>("EndPoint");
-        _agent = Resources.Load<Agent>("Agent");
+        _agent = Instantiate(Resources.Load<Agent>("Agent"), Vector3.zero, Quaternion.identity, transform);
 
         _mapData = new Tile[_mapWidth, _mapHeight];
 
@@ -73,22 +72,19 @@ public class MapGenerator : MonoBehaviour
             case '0':
                 tile = Instantiate(_rand, new Vector3(x, 0, y), Quaternion.identity, transform);
                 tile.type = TILE_TYPE.RAND;
-                tile.text.text = i.ToString();
                 break;
 
             case 'A':
                 tile = Instantiate(_rand, new Vector3(x, 0, y), Quaternion.identity, transform);
-                tile.text.text = i.ToString();
                 tile.type = TILE_TYPE.RAND;
 
-                Agent agent = Instantiate(_agent, new Vector3(x, 1, y), Quaternion.identity, transform);
-                agent.index = new Point(x, y);
+                _agent.transform.position = new Vector3(x, 1, y);
+                _agent.startPoint = tile;
                 break;
 
             case 'W':
                 tile = Instantiate(_rand, new Vector3(x, 0, y), Quaternion.identity, transform);
                 tile.type = TILE_TYPE.RAND;
-                tile.text.text = i.ToString();
 
                 tile = Instantiate(_wall, new Vector3(x, 1, y), Quaternion.identity, transform);
                 tile.type = TILE_TYPE.WALL;
@@ -97,11 +93,10 @@ public class MapGenerator : MonoBehaviour
             case 'E':
                 tile = Instantiate(_endPoint, new Vector3(x, 0, y), Quaternion.identity, transform);
                 tile.type = TILE_TYPE.END;
-                _endPointIndex = new Vector2(x, y);
-
-                FindObjectOfType<Agent>().endPoint = tile;
+                _agent.endPoint = tile;
                 break;
         }
+        tile.index = new Point(x, y);
         tile.name = string.Format("{0}_X:{1}_Y{2}", tile.type.ToString(), x, y);
         return tile;
     }
