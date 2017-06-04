@@ -22,6 +22,7 @@ public class MapGenerator : MonoBehaviour
     private Tile _wall = null;
     private Tile _rand = null;
     private Tile _endPoint = null;
+    private Tile _startPoint = null;
     private Agent _agent = null;
 
 
@@ -30,6 +31,7 @@ public class MapGenerator : MonoBehaviour
         _wall = Resources.Load<Tile>("Wall");
         _rand = Resources.Load<Tile>("Rand");
         _endPoint = Resources.Load<Tile>("EndPoint");
+        _startPoint = Resources.Load<Tile>("StartPoint");
         _agent = Instantiate(Resources.Load<Agent>("Agent"), Vector3.zero, Quaternion.identity, transform);
 
         _mapData = new Tile[_mapWidth, _mapHeight];
@@ -39,28 +41,27 @@ public class MapGenerator : MonoBehaviour
 
     private void ParseMap()
     {
-        string[] separator = { " " };
+        string[] separator = { " ", "\r\n" };
 
         TextAsset text = Resources.Load<TextAsset>(_fileName);
         string[] arr = text.text.Split(separator, StringSplitOptions.RemoveEmptyEntries);
 
-        int width = 0;
+        int width = _mapWidth - 1;
         int height = 0;
-        for (int i = 0; i < arr.Length; i++)
+        Tile tile = null;
+
+        for (int i = arr.Length - 1; i >= 0; --i)
         {
-            Tile tile = GenerateTile(arr[i].ToCharArray()[0], width, height, i);
+            if (width < 0)
+            {
+                width = _mapWidth - 1;
+                ++height;
+            }
+            tile = GenerateTile(arr[i].ToCharArray()[0], width, height, i);
             _mapData[width, height] = tile;
-            if (arr[i].Contains("\r\n"))
-            {
-                tile = GenerateTile(arr[i].ToCharArray()[0], 0, ++height, i);
-                _mapData[0, height] = tile;
-                width = 1;
-            }
-            else
-            {
-                ++width;
-            }
+            --width;
         }
+
         FindObjectOfType<Agent>().mapData = _mapData;
     }
 
@@ -75,7 +76,7 @@ public class MapGenerator : MonoBehaviour
                 break;
 
             case 'A':
-                tile = Instantiate(_rand, new Vector3(x, 0, y), Quaternion.identity, transform);
+                tile = Instantiate(_startPoint, new Vector3(x, 0, y), Quaternion.identity, transform);
                 tile.type = TILE_TYPE.RAND;
 
                 _agent.transform.position = new Vector3(x, 1, y);
@@ -94,6 +95,10 @@ public class MapGenerator : MonoBehaviour
                 tile = Instantiate(_endPoint, new Vector3(x, 0, y), Quaternion.identity, transform);
                 tile.type = TILE_TYPE.END;
                 _agent.endPoint = tile;
+                break;
+
+            default:
+                Debug.Log("Unknwon Tag!! : " + tileTag);
                 break;
         }
         tile.index = new Point(x, y);

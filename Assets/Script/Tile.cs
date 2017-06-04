@@ -20,10 +20,6 @@ public class Tile : MonoBehaviour {
     private Point _index;
     public Point index { set { _index = value; } get { return _index; } }
 
-    [SerializeField]
-    private float _weight;
-    public float weight { get { return _weight; } }
-
     public float f { set; get; }
     public float g { set; get; }
     public float h { set; get; }
@@ -38,6 +34,7 @@ public class Tile : MonoBehaviour {
 
     public void SetPathColor()
     {
-        _renderer.material = Resources.Load<Material>("Path");
+        if (!(_type.Equals(TILE_TYPE.AGENT) || _type.Equals(TILE_TYPE.END)))
+            _renderer.material = Resources.Load<Material>("Path");
     }
 }

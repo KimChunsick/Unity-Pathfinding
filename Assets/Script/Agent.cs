@@ -16,11 +16,27 @@ public struct Point
     }
 }
 
-public class Agent : MonoBehaviour {
+[System.Serializable]
+public struct Direction
+{
+    public Point point;
+    public float weight;
 
-    [SerializeField]
-    private float _weight = 1f;
-    public float weight { get { return _weight; } }
+    public Direction(Point point, float weight)
+    {
+        this.point = point;
+        this.weight = weight;
+    }
+
+    public Direction(int x, int y, float weight)
+    {
+        this.point.x = x;
+        this.point.y = y;
+        this.weight = weight;
+    }
+}
+
+public class Agent : MonoBehaviour {
 
     [SerializeField]
     private bool _isMove = true;
@@ -35,11 +51,8 @@ public class Agent : MonoBehaviour {
 
     private int _width = 0;
     private int _height = 0;
-    private Point[] _directs =
-    {
-        new Point(1, 0), new Point(-1, 0), new Point(0, 1), new Point(0, -1),
-        new Point(1, 1), new Point(-1, 1), new Point(1, -1), new Point(-1, -1)
-    };
+    private Direction[] _directions = { new Direction(1, 0, 1f), new Direction(-1, 0, 1f), new Direction(0, 1, 1f), new Direction(0, -1, 1f),
+                                        new Direction(1, 1, 1.5f), new Direction(-1, 1, 1.5f), new Direction(1, -1, 1.5f), new Direction(-1, -1, 1.5f)};
 
     private void Awake()
     {
@@ -49,6 +62,7 @@ public class Agent : MonoBehaviour {
 
         _width = FindObjectOfType<MapGenerator>().mapWidth;
         _height = FindObjectOfType<MapGenerator>().mapHeight;
+
     }
 
     private void Start()
@@ -90,9 +104,9 @@ public class Agent : MonoBehaviour {
 
     private void AddNearTile(Tile centerTile)
     {
-        for (int i = 0; i < _directs.Length; ++i)
+        for (int i = 0; i < _directions.Length; ++i)
         {
-            Point point = new Point(centerTile.index.x + _directs[i].x, centerTile.index.y + _directs[i].y);
+            Point point = new Point(centerTile.index.x + _directions[i].point.x, centerTile.index.y + _directions[i].point.y);
 
             if ((point.x < 0 || point.x >= _width || point.y < 0 || point.y >= _height) || mapData[point.x, point.y].type.Equals(TILE_TYPE.WALL))
                 continue;
@@ -103,7 +117,7 @@ public class Agent : MonoBehaviour {
 
             if (!_openList.Contains(tile))
             {
-                tile.g = centerTile.g + _weight;
+                tile.g = centerTile.g + _directions[i].weight;
                 tile.h = Mathf.Abs(endPoint.index.x - point.x) + Mathf.Abs(endPoint.index.y - point.y);
                 tile.f = tile.g + tile.h;
                 tile.nextTile = centerTile;
@@ -112,7 +126,7 @@ public class Agent : MonoBehaviour {
             }
             else if (mapData[point.x, point.y].g > centerTile.g + 1)
             {
-                tile.g = centerTile.g + _weight;
+                tile.g = centerTile.g + _directions[i].weight;
                 tile.f = tile.g + tile.h;
                 tile.nextTile = centerTile;
             }
@@ -137,10 +151,7 @@ public class Agent : MonoBehaviour {
     private void PathHighligh()
     {
         for (int i = 0; i < _path.Count; ++i)
-        {
-            Debug.Log(_path[i].name);
             _path[i].SetPathColor();
-        }
     }
 
     private IEnumerator Move()
@@ -148,22 +159,26 @@ public class Agent : MonoBehaviour {
         int indexCount = 0;
         float timer = 0f;
         Tile currentTile = _path[indexCount];
-        while(true)
+
+        Debug.Log("Path Lenght : " + _path.Count);
+
+        while (true)
         {
             Vector3 targetPosition = new Vector3(currentTile.transform.position.x, 1f, currentTile.transform.position.z);
 
             if (targetPosition.Equals(transform.position))
             {
-                if (indexCount > _path.Count)
+                if (indexCount >= _path.Count - 1)
                     break;
 
-                currentTile = _path[(indexCount + 1)];
+                currentTile = _path[++indexCount];
                 timer = 0f;
             }
+
             timer += Time.deltaTime;
-            Debug.Log(timer);
             transform.position = ALLerp.Lerp(transform.position, targetPosition, timer);
             yield return null;
         }
+        Debug.Log("Pathfinding End");
     }
 }
